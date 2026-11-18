@@ -1,12 +1,11 @@
 import { database } from "../lib/firebase-admin.js";
-import { limitToFirst, orderByChild, query } from "firebase-admin/database";
 
 function normalizeCourse(value) {
   return String(value || "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\\u0300-\\u036f]/g, "")
     .replace(/[^a-z0-9-]/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "")
@@ -30,11 +29,10 @@ export default async function handler(req, res) {
       ? Math.min(Math.max(requestedLimit, 1), 50)
       : 20;
 
-    const scoresQuery = query(
-      database.ref(`leaderboard/${course}`),
-      orderByChild("strokes"),
-      limitToFirst(limit)
-    );
+    const scoresQuery = database
+      .ref(`leaderboard/${course}`)
+      .orderByChild("strokes")
+      .limitToFirst(limit);
 
     const snapshot = await scoresQuery.get();
     const entries = [];
